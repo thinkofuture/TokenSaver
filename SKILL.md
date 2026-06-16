@@ -176,11 +176,13 @@ TokenSaver has a layered entry-point strategy:
 
 - **`.tokensaver/`** — the compressed context (always created)
 - **`TOKENSAVER.md`** — the universal entry point (always created)
-- **Adapter files** — thin pointers for tools that don't natively read `TOKENSAVER.md`
+- **Adapter files** — thin pointers that guide each tool to read `TOKENSAVER.md` first
 
-Adapter files (`CLAUDE.md`, `AGENTS.md`, `.cursor/rules/tokensaver.mdc`) are **not created by default**. They are only created or updated when the project already uses those files, or the user explicitly requests them.
+Adapter files are **created by default** alongside `.tokensaver/` and `TOKENSAVER.md`. This eliminates the manual step — users don't need to prompt their AI to read `TOKENSAVER.md` each session.
 
-**Never overwrite existing content.** If an adapter file already exists, only append or update the TokenSaver block. Leave all other content untouched.
+Each adapter does exactly one thing: tell its tool "read `TOKENSAVER.md` before scanning."
+
+**Never overwrite existing content.** If an adapter file already exists, only append or update the TokenSaver block between `<!-- tokensaver:start -->` and `<!-- tokensaver:end -->`. All other content stays untouched.
 
 #### TOKENSAVER.md (always create)
 
@@ -208,40 +210,45 @@ Only inspect source files when implementation details are needed.
 
 Adapter files are thin wrappers. They exist solely to guide tools that don't natively read `TOKENSAVER.md`. They should be minimal — pointing to `TOKENSAVER.md`, not duplicating it.
 
-**CLAUDE.md** — create/update only if:
-- The project already has a `CLAUDE.md` (append the TokenSaver block)
-- The user explicitly asks for Claude Code integration
-- Otherwise, skip it. Claude Code reads `TOKENSAVER.md` natively.
+**CLAUDE.md** — always created. Claude Code reads `CLAUDE.md` automatically on session start, so this wire is essential for zero-prompt onboarding.
 
-When you do create or update CLAUDE.md, append only:
+When you create or update CLAUDE.md, append:
 
 ```markdown
 <!-- tokensaver:start -->
 ## TokenSaver
 Read `TOKENSAVER.md` before scanning source code.
+Use TokenSaver to decide which docs or source files to inspect.
 <!-- tokensaver:end -->
 ```
 
-**AGENTS.md** — create/update only if:
-- The project already has an `AGENTS.md` (append the TokenSaver block)
-- The user asks for Codex / generic agent compatibility
-- Otherwise, skip it.
+**AGENTS.md** — always created. Works with Codex, GitHub Copilot Coding Agent, Windsurf, Cline, Roo Code, Aider, and any agent that reads `AGENTS.md` on startup.
 
-When you do create or update AGENTS.md, append only:
+When you create or update AGENTS.md, append:
 
 ```markdown
 <!-- tokensaver:start -->
 ## TokenSaver
 Read `TOKENSAVER.md` before scanning source code.
+Use TokenSaver to decide which docs or source files to inspect.
 <!-- tokensaver:end -->
 ```
 
-**.cursor/rules/tokensaver.mdc** — create/update only if:
-- The project already has a `.cursor/` directory
-- The user explicitly asks for Cursor support
-- Otherwise, skip it.
+**GEMINI.md** — always created. Gemini CLI reads `GEMINI.md` as its project instruction file (equivalent to `CLAUDE.md` for Gemini).
 
-When you do create it:
+When you create or update GEMINI.md, append:
+
+```markdown
+<!-- tokensaver:start -->
+## TokenSaver
+Read `TOKENSAVER.md` before scanning source code.
+Use TokenSaver to decide which docs or source files to inspect.
+<!-- tokensaver:end -->
+```
+
+**.cursor/rules/tokensaver.mdc** — always created. Cursor loads `.cursor/rules/*.mdc` as project-level rules.
+
+When you create it:
 
 ```markdown
 ---
@@ -250,6 +257,19 @@ alwaysApply: true
 ---
 <!-- tokensaver:start -->
 Read `TOKENSAVER.md` before scanning source code.
+Use TokenSaver to decide which docs or source files to inspect.
+<!-- tokensaver:end -->
+```
+
+**.github/copilot-instructions.md** — always created. VS Code Copilot reads this file for project-level instructions.
+
+When you create or update it, append:
+
+```markdown
+<!-- tokensaver:start -->
+## TokenSaver
+Read `TOKENSAVER.md` before scanning source code.
+Use TokenSaver to decide which docs or source files to inspect.
 <!-- tokensaver:end -->
 ```
 
