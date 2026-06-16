@@ -3,9 +3,9 @@ name: tokensaver
 description: Save AI coding tokens with lightweight, persistent project context. Use when the user wants to reduce repeated repository scans, initialize project context memory, maintain repo knowledge across sessions, or lower AI coding token overhead. Works with any AI coding tool — Claude Code has first-class Skill support.
 ---
 
-# TokenSaver — Agent-Agnostic Project Context
+# TokenSaver — Compressed First-Pass Context for AI Coding Agents
 
-You build and maintain lightweight **project context memory** for AI coding agents — a small set of Markdown files in `.tokensaver/` that act as a compressed index of a repository. AI coding agents read these at session start instead of scanning the entire codebase, saving thousands of tokens per session.
+TokenSaver creates a **compressed first-pass context layer** for AI coding agents. Instead of scanning an entire repository, agents read a small set of structured Markdown files in `.tokensaver/` that act as a compressed index. This replaces expensive full-repo scanning with a fast, targeted first read — saving thousands of tokens per session.
 
 TokenSaver is **agent-agnostic by design**. It works with any AI coding tool that can read project files. Claude Code has first-class Skill support via the `/tokensaver` command.
 
@@ -13,16 +13,23 @@ TokenSaver is **agent-agnostic by design**. It works with any AI coding tool tha
 
 AI coding agents are stateless. Every new session starts cold — the agent must re-discover the repo. That burns tokens.
 
-TokenSaver replaces repeated scanning with **maintained knowledge files**. The key insight:
+TokenSaver replaces repeated scanning with a **compressed first-pass context layer**. The key insight:
 
 > **Generated once, then curated over time.**
 
-The initial context can be drafted from a targeted reading of high-signal files. After that, it's updated **incrementally** — never regenerated from scratch. Each update touches only the relevant files.
+The initial context is drafted from a targeted reading of high-signal files. After that, it's updated **incrementally** — never regenerated from scratch.
 
-Project context memory is the **compressed index and guide to the codebase**, not a replacement for the code itself.
+TokenSaver is **not an additional layer on top of existing configuration**. It is a **compressed first-pass read** — shorter and more structured than scanning raw project files. Agents only dive into detailed docs, large config files, or source code when implementation details are actually needed.
+
+### Handling Mature Projects
+
+For projects that already have `CLAUDE.md`, `AGENTS.md`, docs, rules, or README:
+
+- **If existing config is already short, clear, and effective** — TokenSaver stays minimal. It creates a lightweight `TOKENSAVER.md` index and a focused `.tokensaver/` that points agents to the right files in the right order. No duplication.
+- **If existing config is long, scattered, or redundant** — TokenSaver distills it into `.tokensaver/` and `TOKENSAVER.md`, compressing and indexing what the agent actually needs for a first pass. Source docs remain the territory; TokenSaver is the map.
 
 Principles:
-1. **Generated once, curated over time.** The first version is drafted from targeted reading. Subsequent updates are targeted and incremental — never a full rebuild.
+1. **Compressed first-pass, not an extra layer.** TokenSaver replaces full scanning with a structured short read. It does not add context — it replaces expensive discovery with cheap context.
 2. **Agent-agnostic.** Context files work with Claude Code, Cursor, Codex, Gemini CLI, Aider, Windsurf, Cline, Roo Code, and any AI tool that reads files.
 3. **Single source of truth per concept.** Each fact lives in one file. `[[wikilinks]]` connect related concepts.
 4. **Just enough, not exhaustive.** Capture patterns, decisions, and gotchas — not every function signature.
@@ -34,14 +41,14 @@ Principles:
 **You are token-constrained. Treat discovery as expensive.**
 
 - **Do NOT read the entire repository by default.** Stop when you have enough to write useful context.
-- **Read TokenSaver context files before scanning source code.** Existing `.tokensaver/` files tell you what's known.
+- **Read TokenSaver context files before scanning source code.** Existing `.tokensaver/` files replace the need for broad scanning.
 - **Prefer high-signal files first, in this order:**
   1. README (if exists)
   2. Package/config files (`package.json`, `Cargo.toml`, `pyproject.toml`, etc.)
   3. Entry points (`main.ts`, `index.ts`, `app/`, `src/`)
   4. Routing files (Next.js `app/`, React Router config, etc.)
   5. Schema/migration files (Prisma, Django models, etc.)
-  6. Existing docs (`CONTRIBUTING.md`, `ARCHITECTURE.md`, `TOKENSAVER.md`, `AGENTS.md`)
+  6. Existing docs (`CONTRIBUTING.md`, `ARCHITECTURE.md`, `TOKENSAVER.md`, `AGENTS.md`, `CLAUDE.md`)
 - **Use directory listing + targeted reads, not recursive grep.** List first, then read only the directories that define architecture.
 - **Stop discovery once you can write useful context.** 80% knowledge now > 100% knowledge after scanning 20,000 tokens.
 - **If information is uncertain, write `TODO:` markers** instead of reading more files. The next maintenance pass fills them in.
@@ -64,21 +71,33 @@ Principles:
 
 ## Workflow: Initialize Project Context
 
-### Phase 1: Discover (Token-Efficient)
+### Phase 1: Assess Existing Configuration
 
-**Goal: Learn enough to write useful context. Not a full audit.**
+Before creating anything, check what already exists:
+
+1. Check for existing `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/`, `README.md`, `CONTRIBUTING.md`
+2. Evaluate: are these already short, clear, and well-structured?
+3. If yes — TokenSaver should be minimal. Create a lightweight index that points to what's already good.
+4. If no (too long, scattered, redundant) — TokenSaver should distill and compress.
+
+**For mature projects:** The goal is compression and indexing, not adding more reading. End the session with fewer total tokens needed for first-pass context — never more.
+
+### Phase 2: Discover (Token-Efficient)
+
+**Goal: Learn enough to write useful compressed context. Not a full audit.**
 
 1. Start with a top-level directory listing
 2. Read README, package config, and entry points
-3. Read the routing/layout layer (tells you the module structure)
-4. Sample key directories — don't exhaustively list
-5. **Stop when you can describe the architecture.**
+3. Read existing instruction files (CLAUDE.md, AGENTS.md, .cursor/rules/) — but only to assess whether they need compression
+4. Read the routing/layout layer (tells you the module structure)
+5. Sample key directories — don't exhaustively list
+6. **Stop when you can describe the architecture.**
 
 **Monorepo handling:** Identify packages/workspaces. Create a top-level context file mapping package boundaries. Focus initial context on the package(s) the developer works in most.
 
 **Critical rule: If information is missing, write `TODO:`.** Don't block initialization to ask questions. Default to completing the first pass automatically. Only ask the developer when something is genuinely ambiguous (e.g., "is this a library or an application?").
 
-### Phase 2: Structure
+### Phase 3: Structure
 
 Create `.tokensaver/`. The **default structure** is these 7 files:
 
@@ -106,7 +125,7 @@ Create `.tokensaver/`. The **default structure** is these 7 files:
 - `state-management.md` — only if state management is complex (e.g., Redux, MobX)
 - `migrations.md` — only if there's a non-trivial migration strategy
 
-### Phase 3: Write
+### Phase 4: Write
 
 Write each file. Follow the format and keep it concise.
 
@@ -151,13 +170,13 @@ Write each file. Follow the format and keep it concise.
 - Prefer tables for comparison, lists for sequences.
 - Keep each file under 150 lines. If growing past that, consider splitting.
 
-### Phase 4: Create Entry Points
+### Phase 5: Create Entry Points
 
 TokenSaver has a layered entry-point strategy:
 
-- **`.tokensaver/`** — the detailed project context (always created)
-- **`TOKENSAVER.md`** — the universal entry point (always created). Tells AI agents how to use `.tokensaver/`
-- **Adapter files** — thin wrappers that guide specific tools to read `TOKENSAVER.md`
+- **`.tokensaver/`** — the compressed context (always created)
+- **`TOKENSAVER.md`** — the universal entry point (always created)
+- **Adapter files** — thin pointers for tools that don't natively read `TOKENSAVER.md`
 
 Adapter files (`CLAUDE.md`, `AGENTS.md`, `.cursor/rules/tokensaver.mdc`) are **not created by default**. They are only created or updated when the project already uses those files, or the user explicitly requests them.
 
@@ -165,14 +184,15 @@ Adapter files (`CLAUDE.md`, `AGENTS.md`, `.cursor/rules/tokensaver.mdc`) are **n
 
 #### TOKENSAVER.md (always create)
 
-TOKENSAVER.md is the single universal entry point for TokenSaver. It tells AI agents what `.tokensaver/` contains and in what order to read it. **Target 5–15 lines.** It is an index, not a duplicate of the context files.
+TOKENSAVER.md is the universal entry point. It tells AI agents that `.tokensaver/` is the compressed first-pass read — they should read it before scanning source code. **Target 5–15 lines.** It is an index, not a duplicate.
 
 ```markdown
 # TOKENSAVER.md
 
-## TokenSaver Project Context
+<!-- tokensaver:start -->
+## TokenSaver — Compressed First-Pass Context
 
-Before scanning the repository, read the TokenSaver context files first.
+Read `.tokensaver/` before scanning source code.
 Start with:
 1. `.tokensaver/session-handoff.md`
 2. `.tokensaver/overview.md`
@@ -181,6 +201,7 @@ Start with:
 Use `.tokensaver/architecture.md`, `.tokensaver/conventions.md`, `.tokensaver/decisions.md`, and `.tokensaver/gotchas.md` when relevant.
 Treat source code as the source of truth. TokenSaver files are a compressed guide, not a replacement for code.
 Only inspect source files when implementation details are needed.
+<!-- tokensaver:end -->
 ```
 
 #### Adapter Files (only when applicable)
@@ -192,11 +213,13 @@ Adapter files are thin wrappers. They exist solely to guide tools that don't nat
 - The user explicitly asks for Claude Code integration
 - Otherwise, skip it. Claude Code reads `TOKENSAVER.md` natively.
 
-When you do create or update CLAUDE.md, just add a brief reference:
+When you do create or update CLAUDE.md, append only:
 
 ```markdown
+<!-- tokensaver:start -->
 ## TokenSaver
-Read `TOKENSAVER.md` and `.tokensaver/` before scanning source code.
+Read `TOKENSAVER.md` before scanning source code.
+<!-- tokensaver:end -->
 ```
 
 **AGENTS.md** — create/update only if:
@@ -204,11 +227,13 @@ Read `TOKENSAVER.md` and `.tokensaver/` before scanning source code.
 - The user asks for Codex / generic agent compatibility
 - Otherwise, skip it.
 
-When you do create or update AGENTS.md, just add a brief reference:
+When you do create or update AGENTS.md, append only:
 
 ```markdown
+<!-- tokensaver:start -->
 ## TokenSaver
-Read `TOKENSAVER.md` and `.tokensaver/` before scanning source code.
+Read `TOKENSAVER.md` before scanning source code.
+<!-- tokensaver:end -->
 ```
 
 **.cursor/rules/tokensaver.mdc** — create/update only if:
@@ -220,13 +245,15 @@ When you do create it:
 
 ```markdown
 ---
-description: Use TokenSaver project context before scanning the repo
+description: Use TokenSaver compressed first-pass context
 alwaysApply: true
 ---
-Read `TOKENSAVER.md` and `.tokensaver/` before scanning source code.
+<!-- tokensaver:start -->
+Read `TOKENSAVER.md` before scanning source code.
+<!-- tokensaver:end -->
 ```
 
-**Critical: Never overwrite an existing file.** If `CLAUDE.md`, `AGENTS.md`, or a Cursor rule already exists with other content, append only the TokenSaver block. Do not replace the file. TokenSaver is a guest in the user's project.
+**Critical: Never overwrite an existing file.** If `CLAUDE.md`, `AGENTS.md`, or a Cursor rule already exists with other content, append only the TokenSaver block between `<!-- tokensaver:start -->` and `<!-- tokensaver:end -->` markers. Do not replace the file. TokenSaver is a guest in the user's project.
 
 ## Workflow: Maintain Project Context
 

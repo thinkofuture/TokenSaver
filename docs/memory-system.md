@@ -1,19 +1,38 @@
 # Context System Architecture
 
-> How TokenSaver works: file structure, linking, multi-tool entry points, and context management.
+> How TokenSaver works: compressed first-pass context, file structure, linking, multi-tool entry points, and context window management.
+
+---
+
+## Core Concept: Compressed First-Pass
+
+TokenSaver is not an extra layer on top of existing project configuration. It is a **compressed first-pass context layer** that replaces expensive full-repo scanning.
+
+```
+Without TokenSaver:
+  Agent starts → scans entire repo → builds understanding → begins work
+  Cost: ~15,000 tokens of scanning before any real work
+
+With TokenSaver:
+  Agent starts → reads TOKENSAVER.md → reads .tokensaver/ → begins work
+  Cost: ~1,500 tokens of structured context
+
+  Source docs and code are still the territory.
+  TokenSaver is the compressed map.
+```
 
 ---
 
 ## Three Layers
 
 ```
-Layer 1: TOKENSAVER.md         ← Universal entry point (read every session)
+Layer 1: TOKENSAVER.md         ← Universal entry point (first-pass index)
     │
     ▼
-Layer 2: Context Files         ← Structured knowledge in .tokensaver/
+Layer 2: Context Files         ← Compressed knowledge in .tokensaver/
     │
     ▼
-Layer 3: Actual Code           ← The repository (source of truth)
+Layer 3: Actual Code           ← The repository (source of truth, read on-demand)
 ```
 
 ---
@@ -22,14 +41,15 @@ Layer 3: Actual Code           ← The repository (source of truth)
 
 ### TOKENSAVER.md (Core Entry Point — always created)
 
-`TOKENSAVER.md` is the single universal entry point for TokenSaver. All AI agents start here. It tells agents what `.tokensaver/` contains and in what order to read it. Target 5–15 lines.
+`TOKENSAVER.md` is the universal entry point. It tells agents that `.tokensaver/` is the compressed first-pass read — they should read it before scanning source code. Target 5–15 lines. Each block is wrapped in markers for clean insertion and removal.
 
 ```markdown
 # TOKENSAVER.md
 
-## TokenSaver Project Context
+<!-- tokensaver:start -->
+## TokenSaver — Compressed First-Pass Context
 
-Before scanning the repository, read the TokenSaver context files first.
+Read `.tokensaver/` before scanning source code.
 Start with:
 1. `.tokensaver/session-handoff.md`
 2. `.tokensaver/overview.md`
@@ -38,37 +58,51 @@ Start with:
 Use `.tokensaver/architecture.md`, `.tokensaver/conventions.md`, `.tokensaver/decisions.md`, and `.tokensaver/gotchas.md` when relevant.
 Treat source code as the source of truth. TokenSaver files are a compressed guide, not a replacement for code.
 Only inspect source files when implementation details are needed.
+<!-- tokensaver:end -->
 ```
 
-### Adapter Files (Optional — thin wrappers)
+### Adapter Files (Optional — thin pointers)
 
-Adapters exist solely to guide tools that don't natively read `TOKENSAVER.md`. They are **not created by default**. Each is just a brief pointer:
+Adapters exist solely to guide tools that don't natively read `TOKENSAVER.md`. They are **not created by default**. Each adapter block is wrapped in `<!-- tokensaver:start -->` / `<!-- tokensaver:end -->` for clean insertion, identification, and removal.
 
 **CLAUDE.md** — only if the project already has one or the user asks:
 
 ```markdown
+<!-- tokensaver:start -->
 ## TokenSaver
-Read `TOKENSAVER.md` and `.tokensaver/` before scanning source code.
+Read `TOKENSAVER.md` before scanning source code.
+<!-- tokensaver:end -->
 ```
 
 **AGENTS.md** — only if the project already has one or the user asks:
 
 ```markdown
+<!-- tokensaver:start -->
 ## TokenSaver
-Read `TOKENSAVER.md` and `.tokensaver/` before scanning source code.
+Read `TOKENSAVER.md` before scanning source code.
+<!-- tokensaver:end -->
 ```
 
 **Cursor rules** — only if `.cursor/` exists or the user asks:
 
 ```markdown
 ---
-description: Use TokenSaver project context before scanning the repo
+description: Use TokenSaver compressed first-pass context
 alwaysApply: true
 ---
-Read `TOKENSAVER.md` and `.tokensaver/` before scanning source code.
+<!-- tokensaver:start -->
+Read `TOKENSAVER.md` before scanning source code.
+<!-- tokensaver:end -->
 ```
 
-**Critical:** Adapters never overwrite existing content. If a file already has content, the TokenSaver block is appended at the end.
+**Critical:** Adapters never overwrite existing content. If a file already has content, the TokenSaver block is appended at the end between the marker comments.
+
+### Handling Mature Projects
+
+If the project already has `CLAUDE.md`, `AGENTS.md`, or other instruction files, TokenSaver evaluates them first:
+
+- **Already short and clear?** TokenSaver creates a minimal `TOKENSAVER.md` that indexes existing files — agents read existing config plus the TokenSaver index. No duplication.
+- **Too long or scattered?** TokenSaver distills and compresses into `.tokensaver/`, reducing total first-pass tokens. Adapters point tools to `TOKENSAVER.md` instead of scanning everything.
 
 ---
 
@@ -127,7 +161,7 @@ Context files use wikilinks for cross-referencing: `[[architecture]]` connects t
 
 ## Layer 3: Actual Code
 
-Context is a map, not the territory. AI agents still read source files. Context reduces the search space from "the entire repo" to "the relevant files."
+Context is a map, not the territory. AI agents still read source files — but they read fewer of them, and only when implementation details are needed. Context reduces the search space from "the entire repo" to "the relevant files."
 
 ---
 
@@ -139,27 +173,27 @@ For a medium project:
 
 | What | Tokens |
 |------|--------|
-| Entry point (TOKENSAVER.md) | ~150 |
+| TOKENSAVER.md | ~150 |
 | overview.md | ~300 |
 | codebase-map.md | ~400 |
 | session-handoff.md | ~200 |
-| **Base load (every session)** | **~1,050** |
+| **First pass (every session)** | **~1,050** |
 | conventions.md (when writing code) | ~400 |
 | architecture.md (when designing) | ~500 |
-| **Peak (relevant files loaded)** | **~2,000** |
+| **Peak (on-demand context loaded)** | **~2,000** |
 
 Compare to full repo scan: **10,000–20,000 tokens**. ~85–90% reduction.
 
 ### Progressive Loading
 
 ```
-Session Start (always):
+Session Start (always — compressed first-pass):
   ├── TOKENSAVER.md
   ├── overview.md
   ├── codebase-map.md
   └── session-handoff.md
 
-During Session (on-demand):
+During Session (on-demand — only when needed):
   ├── conventions.md     — when writing code
   ├── architecture.md    — when designing changes
   ├── decisions.md       — when evaluating options
@@ -173,13 +207,14 @@ During Session (on-demand):
 ```
                     ┌─────────────────┐
                     │   .tokensaver/   │
-                    │  (source of      │
-                    │   context truth) │
+                    │  (compressed     │
+                    │   context)       │
                     └────────┬────────┘
                              │
                     ┌────────▼────────┐
                     │  TOKENSAVER.md  │
                     │  (universal     │
+                    │   first-pass    │
                     │   entry point)  │
                     └────────┬────────┘
                              │
@@ -191,7 +226,7 @@ During Session (on-demand):
     └────────────┘   └─────────────┘   └────────────────┘
 ```
 
-One set of context files. Multiple entry points for different AI coding tools.
+One set of compressed context files. One universal entry point. Optional thin adapters.
 
 ---
 

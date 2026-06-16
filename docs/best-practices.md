@@ -12,10 +12,22 @@
 - After the first working prototype
 - Before your first AI coding session on the project
 - When a second developer joins
+- When existing project docs have grown too long or scattered
 
 **Too early:**
 - Before any code exists
 - Mid-rewrite when architecture is fluid
+
+### Assess Before Creating
+
+Before creating any files, check what already exists:
+
+1. Look for existing `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/`, `README.md`
+2. Are they already short, clear, and well-structured?
+3. **If yes** — TokenSaver creates a minimal `TOKENSAVER.md` index that points agents to existing files in the right read order
+4. **If no** (too long, scattered, redundant) — TokenSaver distills and compresses into `.tokensaver/`
+
+The goal: agents need fewer total tokens for first-pass context, never more.
 
 ### The Session
 
@@ -29,9 +41,9 @@ claude
 ```
 
 TokenSaver will:
-1. Read key files (README, configs, entry points — not the whole repo)
-2. Create `.tokensaver/` with core context files
-3. Create `TOKENSAVER.md` as the universal entry point
+1. Assess existing configuration files
+2. Create `.tokensaver/` with core context files (compressing if needed)
+3. Create `TOKENSAVER.md` as the universal first-pass entry point
 4. If applicable, append brief adapter blocks to existing `CLAUDE.md`, `AGENTS.md`, or `.cursor/rules/`
 
 ```bash
@@ -47,7 +59,7 @@ git commit -m "Initialize project context with TokenSaver"
 3. **Gotchas** — What will waste time if unknown
 4. **Architecture** — Hardest to rediscover
 
-A 70% complete context used daily beats a 100% complete one that's never written.
+A 70% complete compressed context used daily beats a 100% complete one that's never written.
 
 ---
 
@@ -55,11 +67,11 @@ A 70% complete context used daily beats a 100% complete one that's never written
 
 ### Start
 
-No special action needed. AI coding agents automatically load entry points → context files.
+No special action needed. AI coding agents automatically load entry points → first-pass context.
 
 ### During
 
-Agents reference context as needed — conventions when writing code, architecture when designing changes, gotchas when debugging.
+Agents read on-demand context as needed — conventions when writing code, architecture when designing changes, gotchas when debugging. Source files are only read when implementation details are required.
 
 ### End — The 2-Minute Update
 
@@ -86,24 +98,24 @@ claude "Update project context with today's changes"
 
 ### Shared Context
 
-Context files live in git. All AI coding tools on the project read the same files → shared understanding across tools and team members.
+Context files live in git. All AI coding tools on the project read the same compressed first-pass → shared understanding across tools and team members.
 
 ### Tool-Specific Entry Points
 
 | File | Role | When Created |
 |------|------|-------------|
-| `TOKENSAVER.md` | Universal entry point | Always |
+| `TOKENSAVER.md` | Universal first-pass entry point | Always |
 | `CLAUDE.md` | Thin adapter for Claude Code | Only if already exists or user requests |
 | `AGENTS.md` | Thin adapter for Codex, Gemini CLI, etc. | Only if already exists or user requests |
 | `.cursor/rules/tokensaver.mdc` | Thin adapter for Cursor | Only if `.cursor/` exists or user requests |
 
-All adapters just point to `TOKENSAVER.md`. All tools ultimately read the same `.tokensaver/` directory.
+All adapters just point to `TOKENSAVER.md` via `<!-- tokensaver:start -->` / `<!-- tokensaver:end -->` blocks. All tools ultimately read the same `.tokensaver/` directory.
 
 ### Adding a New Tool
 
 If your team adopts a new AI coding tool:
 1. Check if it reads `TOKENSAVER.md` — if so, no changes needed
-2. If not, check if it has its own instruction file format — add a brief reference to `TOKENSAVER.md`
+2. If not, check if it has its own instruction file format — add a brief adapter pointing to `TOKENSAVER.md`
 3. Keep the context files themselves unchanged
 
 ---
@@ -112,7 +124,7 @@ If your team adopts a new AI coding tool:
 
 ### Shared Context
 
-Context files live in git. All team members' AI sessions read the same files → shared understanding.
+Context files live in git. All team members' AI sessions read the same compressed context → shared understanding.
 
 ### PR Reviews
 
@@ -142,11 +154,15 @@ When the team disagrees on conventions: document the decision in `decisions.md`,
 
 **Bad:** Re-running full discovery and regenerating all files. **Good:** Targeted updates to only the files affected by the change.
 
-### 5. Skipping Entry Points
+### 5. Skipping TOKENSAVER.md
 
 **Bad:** Creating `.tokensaver/` but not creating `TOKENSAVER.md`. **Good:** Always create the universal entry point as the final step.
 
-### 6. Over-Engineering the Structure
+### 6. Piling On Without Compressing
+
+**Bad:** Adding `.tokensaver/` on top of long existing docs without compressing — making agents read *more*, not less. **Good:** If existing config is already clear, index it. If it's too long, distill it. TokenSaver always reduces total first-pass tokens.
+
+### 7. Over-Engineering the Structure
 
 **Bad:** Creating 10+ files for a 500-line project. **Good:** Start with 3–4 files. Add more only when existing files grow beyond 100 lines.
 
@@ -160,5 +176,6 @@ When the team disagrees on conventions: document the decision in `decisions.md`,
 | **Init** | 3–7 files, usable in 15 min | 10+ files, try to be complete |
 | **Updates** | Targeted, 2 min after each session | Rebuild all files quarterly |
 | **Detail** | Conceptual models, patterns | Every function, endpoint, prop |
+| **Token impact** | Fewer total tokens for first-pass | More reading burden |
 | **Audience** | AI coding context window | Human documentation |
 | **Tools** | Agent-agnostic everywhere | Tied to one tool |
