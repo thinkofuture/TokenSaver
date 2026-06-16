@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="assets/logo.png" alt="TokenSaver Logo" width="120" />
+  <img src="assets/logo.png?v=2" alt="TokenSaver Logo" width="120" />
 </p>
+
 
 <h1 align="center">TokenSaver</h1>
 
@@ -13,15 +14,18 @@
   Turn repeated repo scanning into reusable project context.
 </p>
 
+
 <p align="center">
   <a href="#english">English</a> · <a href="#中文">中文</a>
 </p>
+
 
 ---
 
 <a id="english"></a>
 
 ## English
+
 
 ### Why TokenSaver?
 
@@ -39,6 +43,7 @@ Without → agent scans the repo blind:     ~15,000 tokens (every time)
 With    → agent reads the cheat sheet:      ~1,500 tokens (once)
 ```
 
+
 ### What it does
 
 TokenSaver reads your project's key files, then creates:
@@ -49,6 +54,7 @@ TokenSaver reads your project's key files, then creates:
 Your agent gets oriented in ~1,500 tokens instead of scanning the whole repo. It only opens source files when it actually needs the details.
 
 > TokenSaver replaces expensive full-repo scanning. It's not another layer on top — it's a shortcut.
+
 
 ### What it creates
 
@@ -67,7 +73,9 @@ Your agent gets oriented in ~1,500 tokens instead of scanning the whole repo. It
 
 </details>
 
+
 **`TOKENSAVER.md`** — the universal entry point. Every AI tool reads here first.
+
 
 **Optional thin adapters** — only created when needed, never overwrite existing config:
 
@@ -78,6 +86,7 @@ Your agent gets oriented in ~1,500 tokens instead of scanning the whole repo. It
 | `.cursor/rules/tokensaver.mdc` | Cursor |
 
 All adapters are thin pointers to `TOKENSAVER.md`. Changes are wrapped in `<!-- tokensaver:start -->` / `<!-- tokensaver:end -->` — your existing config stays untouched.
+
 
 ### How it works with your tools
 
@@ -99,6 +108,7 @@ TokenSaver is **agent-agnostic**. `TOKENSAVER.md` is a plain Markdown file — a
 
 </details>
 
+
 ### Quick Start
 
 <details>
@@ -118,6 +128,7 @@ TokenSaver scans your project, creates `.tokensaver/` and `TOKENSAVER.md`. Adapt
 
 </details>
 
+
 <details>
 <summary><b>Other tools</b></summary>
 
@@ -129,6 +140,7 @@ That's it. Your agent now starts with context instead of a blank slate.
 
 </details>
 
+
 **Daily use:**
 
 ```bash
@@ -139,6 +151,7 @@ claude
 claude "Update project context with today's changes"
 ```
 
+
 ### FAQ
 
 <details>
@@ -148,12 +161,14 @@ No. Claude Code gets a first-class Skill, but `.tokensaver/` is plain Markdown. 
 
 </details>
 
+
 <details>
 <summary><b>Does it replace my README or docs?</b></summary>
 
 No. TokenSaver is for AI agents, not humans. Keep your README, wiki, and API docs — they serve a different audience.
 
 </details>
+
 
 <details>
 <summary><b>Won't this make the agent read more files?</b></summary>
@@ -162,12 +177,14 @@ Opposite. It's ~1,500 tokens of structured context instead of ~15,000 tokens of 
 
 </details>
 
+
 <details>
 <summary><b>Should I commit .tokensaver/?</b></summary>
 
 Yes. It's designed to be versioned alongside your code — the whole team's agents benefit from it.
 
 </details>
+
 
 <details>
 <summary><b>What if it goes stale?</b></summary>
@@ -176,20 +193,24 @@ Refresh it. Two minutes after a session updates the changed files. Or ask your a
 
 </details>
 
+
 ### Examples & Docs
 
 - Examples: [Next.js SaaS](examples/nextjs-example.md) · [React Native](examples/react-native-example.md) · [AI Agent Framework](examples/saas-example.md)
 - Docs: [Philosophy](docs/philosophy.md) · [Architecture](docs/memory-system.md) · [Best Practices](docs/best-practices.md)
 
+
 ### License
 
 MIT © 2026
+
 
 ---
 
 <a id="中文"></a>
 
 ## 中文
+
 
 ### 为什么需要 TokenSaver？
 
@@ -201,12 +222,11 @@ TokenSaver 把它压缩成一份小抄。
 第一次还行。<br>
 每次都这样，又慢又烧钱。
 
-TokenSaver 做的事很简单：把项目关键信息读一次，压缩成一份 AI 可以复用的"小抄"。
-
 ```
 没有 TokenSaver：  AI 盲目扫描仓库:     ~15,000 tokens（每次都这样）
 使用 TokenSaver：  AI 先读小抄:          ~1,500 tokens（一次搞定）
 ```
+
 
 ### 它做什么？
 
@@ -218,6 +238,7 @@ TokenSaver 先读项目关键文件，然后生成：
 AI 用 ~1,500 tokens 就能了解项目全貌，不需要到处翻文件。只有在真正需要实现细节时，才打开源码。
 
 > TokenSaver 替代昂贵的全仓库扫描，不是在已有配置上额外加一层——它是捷径。
+
 
 ### 它会生成什么？
 
@@ -236,7 +257,9 @@ AI 用 ~1,500 tokens 就能了解项目全貌，不需要到处翻文件。只�
 
 </details>
 
+
 **`TOKENSAVER.md`** — 统一入口，所有 AI 工具都从这里开始。
+
 
 **可选适配器** — 只在需要时创建，绝不覆盖已有配置：
 
@@ -247,6 +270,7 @@ AI 用 ~1,500 tokens 就能了解项目全貌，不需要到处翻文件。只�
 | `.cursor/rules/tokensaver.mdc` | Cursor |
 
 所有适配器都是指向 `TOKENSAVER.md` 的薄指针。修改用 `<!-- tokensaver:start -->` / `<!-- tokensaver:end -->` 包裹——你已有的配置不动分毫。
+
 
 ### 和你的工具怎么配合？
 
@@ -268,6 +292,7 @@ TokenSaver 从设计上就是**工具无关**的。`TOKENSAVER.md` 就是普通 
 
 </details>
 
+
 ### 快速开始
 
 <details>
@@ -287,6 +312,7 @@ TokenSaver 先评估项目现状，创建 `.tokensaver/` 和 `TOKENSAVER.md`。�
 
 </details>
 
+
 <details>
 <summary><b>其他工具</b></summary>
 
@@ -298,6 +324,7 @@ TokenSaver 先评估项目现状，创建 `.tokensaver/` 和 `TOKENSAVER.md`。�
 
 </details>
 
+
 **日常使用：**
 
 ```bash
@@ -308,6 +335,7 @@ claude
 claude "Update project context with today's changes"
 ```
 
+
 ### 常见问题
 
 <details>
@@ -317,12 +345,14 @@ claude "Update project context with today's changes"
 
 </details>
 
+
 <details>
 <summary><b>会替代我的 README 或文档吗？</b></summary>
 
 不会。TokenSaver 是给 AI 看的，不是给人看的。保留你的 README、wiki 和 API 文档——它们面向不同的读者。
 
 </details>
+
 
 <details>
 <summary><b>这不是让 AI 读更多文件吗？</b></summary>
@@ -331,12 +361,14 @@ claude "Update project context with today's changes"
 
 </details>
 
+
 <details>
 <summary><b>.tokensaver/ 要提交到仓库吗？</b></summary>
 
 要。它就是设计来跟着代码一起版本管理的——整个团队的 AI 都能受益。
 
 </details>
+
 
 <details>
 <summary><b>内容过时了怎么办？</b></summary>
@@ -345,10 +377,12 @@ claude "Update project context with today's changes"
 
 </details>
 
+
 ### 示例 & 文档
 
 - 示例：[Next.js SaaS](examples/nextjs-example.md) · [React Native](examples/react-native-example.md) · [AI Agent Framework](examples/saas-example.md)
 - 文档：[设计哲学](docs/philosophy.md) · [系统架构](docs/memory-system.md) · [最佳实践](docs/best-practices.md)
+
 
 ### License
 
