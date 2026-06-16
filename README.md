@@ -1,14 +1,16 @@
 <p align="center">
-  <picture>
-    <img src="assets/logo.png" alt="TokenSaver Logo" width="96" style="background: #ffffff; padding: 16px; border-radius: 20px;" />
-  </picture>
+  <img src="assets/logo.png" alt="TokenSaver Logo" width="120" />
 </p>
 
 <h1 align="center">TokenSaver</h1>
 
 <p align="center">
-  <strong>Your AI agent keeps rediscovering your project. Every. Single. Session.</strong><br>
-  Give it a cheat sheet. <em>One</em> short read instead of <em>every</em> repo scan.
+  <strong>Stop paying your AI to reread your repo.</strong><br>
+  TokenSaver gives it a small cheat sheet instead.
+</p>
+
+<p align="center">
+  Turn repeated repo scanning into reusable project context.
 </p>
 
 <p align="center">
@@ -191,9 +193,10 @@ MIT © 2026
 
 ### 为什么需要 TokenSaver？
 
-AI 编程助手没有项目记忆。
+别再花 token 让 AI 重读你的仓库。<br>
+TokenSaver 把它压缩成一份小抄。
 
-每次新会话，它都要重新翻一遍：`package.json`、路由、配置、docs、`src/` 下面一堆文件……
+每次新会话，AI 都从零开始翻你的项目：`package.json`、路由、配置、docs、`src/` 下面一堆文件……
 
 第一次还行。<br>
 每次都这样，又慢又烧钱。
